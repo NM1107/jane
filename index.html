@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GamingPC">
+<meta name="theme-color" content="#05080d">
+<title>GamingPC Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05080d; --cyan:#3fe0ff; --cyan-dim:rgba(63,224,255,.18);
+    --red:#ff3b3b; --gold:#ffb52e; --text:#d8f6ff; --muted:#7fa6b3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--text);min-height:100%}
+  body{
+    font-family:'Rajdhani',system-ui,sans-serif;
+    padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 28px);
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(63,224,255,.12), transparent 55%),
+      repeating-linear-gradient(0deg, rgba(63,224,255,.035) 0 1px, transparent 1px 4px),
+      var(--bg);
+    overflow-x:hidden;
+  }
+  .wrap{width:100%;max-width:440px;display:flex;flex-direction:column;align-items:center}
+
+  /* Header */
+  header{text-align:center;margin-bottom:22px}
+  .tag{font-family:'Orbitron';font-size:11px;letter-spacing:.35em;color:var(--muted)}
+  h1{font-family:'Orbitron';font-weight:900;font-size:30px;letter-spacing:.08em;margin-top:6px;
+     color:var(--cyan);text-shadow:0 0 18px rgba(63,224,255,.55)}
+  .clock{font-family:'Orbitron';font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:.15em}
+
+  /* Arc reactor */
+  .reactor{position:relative;width:170px;height:170px;margin:6px 0 26px}
+  .ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--cyan-dim)}
+  .ring.r1{border-top-color:var(--cyan);border-right-color:var(--cyan);animation:spin 6s linear infinite}
+  .ring.r2{inset:18px;border-bottom-color:var(--cyan);border-left-color:var(--cyan);animation:spin 4s linear infinite reverse}
+  .ring.r3{inset:36px;border:2px dashed rgba(63,224,255,.45);animation:spin 12s linear infinite}
+  .core{position:absolute;inset:58px;border-radius:50%;
+        background:radial-gradient(circle,#fff 0%,var(--cyan) 35%,rgba(63,224,255,.15) 70%,transparent 72%);
+        box-shadow:0 0 40px var(--cyan),0 0 90px rgba(63,224,255,.4);animation:pulse 2.4s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{50%{transform:scale(.88);opacity:.75}}
+
+  /* Buttons */
+  .btn{position:relative;display:flex;align-items:center;gap:16px;width:100%;
+       padding:20px 22px;margin-bottom:16px;border-radius:14px;text-decoration:none;color:var(--text);
+       border:1.5px solid;background:rgba(10,18,26,.85);overflow:hidden;
+       transition:transform .12s ease, box-shadow .2s ease}
+  .btn:active{transform:scale(.97)}
+  .btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
+       background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+       transform:skewX(-20deg);animation:sweep 3.5s ease-in-out infinite}
+  @keyframes sweep{0%,60%{left:-60%}100%{left:130%}}
+  .btn .icon{flex:0 0 54px;height:54px;border-radius:50%;display:grid;place-items:center;border:2px solid}
+  .btn svg{width:28px;height:28px}
+  .btn .label{font-family:'Orbitron';font-weight:700;font-size:20px;letter-spacing:.08em}
+  .btn .sub{font-size:15px;color:var(--muted);margin-top:2px}
+  .btn .arrow{margin-left:auto;font-family:'Orbitron';font-size:20px;opacity:.6}
+
+  .start{border-color:var(--red);box-shadow:0 0 22px rgba(255,59,59,.25), inset 0 0 22px rgba(255,59,59,.08)}
+  .start .icon{border-color:var(--red);color:var(--red);box-shadow:0 0 14px rgba(255,59,59,.5)}
+  .start .label{color:#ff6b6b}
+  .ctrl{border-color:var(--cyan);box-shadow:0 0 22px rgba(63,224,255,.22), inset 0 0 22px rgba(63,224,255,.07)}
+  .ctrl .icon{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(63,224,255,.5)}
+  .ctrl .label{color:var(--cyan)}
+  .off{border-color:var(--gold);box-shadow:0 0 22px rgba(255,181,46,.2), inset 0 0 22px rgba(255,181,46,.07)}
+  .off .icon{border-color:var(--gold);color:var(--gold);box-shadow:0 0 14px rgba(255,181,46,.45)}
+  .off .label{color:var(--gold);font-size:18px}
+  button.btn{font:inherit;text-align:left;cursor:pointer}
+  .confirm{width:100%;margin:-6px 0 16px;padding:16px;border-radius:14px;border:1.5px solid var(--gold);
+           background:rgba(40,28,6,.85);text-align:center}
+  .confirm .q{font-family:'Orbitron';font-size:14px;letter-spacing:.06em;color:var(--gold);margin-bottom:12px}
+  .confirm .row{display:flex;gap:10px}
+  .confirm .row>*{flex:1;padding:14px;border-radius:10px;font-family:'Orbitron';font-size:13px;
+           letter-spacing:.08em;text-decoration:none;text-align:center;cursor:pointer}
+  .confirm .no{background:transparent;border:1px solid var(--muted);color:var(--muted)}
+  .confirm .yes{background:var(--gold);color:#1a1000;font-weight:700;border:none}
+  .confirm .done{font-size:15px;color:var(--text);margin-top:10px}
+
+  /* Help */
+  details{width:100%;margin-top:8px;border:1px solid rgba(63,224,255,.22);border-radius:12px;
+          background:rgba(10,18,26,.6)}
+  summary{list-style:none;cursor:pointer;padding:14px 16px;font-family:'Orbitron';font-size:13px;
+          letter-spacing:.12em;color:var(--cyan);display:flex;justify-content:space-between}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";font-size:16px}
+  details[open] summary::after{content:"–"}
+  .help{padding:0 16px 16px;font-size:16px;line-height:1.45}
+  .help h3{font-family:'Orbitron';font-size:12px;letter-spacing:.12em;margin:12px 0 6px}
+  .help h3.r{color:#ff6b6b} .help h3.c{color:var(--cyan)} .help h3.g{color:var(--gold)}
+  .help ol{padding-left:20px} .help li{margin-bottom:3px}
+  .help b{color:#fff}
+
+
+  footer{margin-top:22px;font-family:'Orbitron';font-size:10px;letter-spacing:.3em;color:#3d5a66;text-align:center}
+  /* Player */
+  #pl{position:fixed;inset:0;background:#000;display:none;z-index:1000;font-family:'Share Tech Mono',monospace}
+  #pl.on{display:block}
+  #cv{position:absolute;inset:0;width:100%;height:100%}
+  .hud{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top) + 14px);text-align:center;padding:0 14px;pointer-events:none}
+  .hud .ti{font-family:'Orbitron';font-weight:900;font-size:15px;letter-spacing:.22em;color:#3fe0ff;text-shadow:0 0 12px rgba(63,224,255,.8)}
+  .hud .su{font-size:11px;letter-spacing:.25em;color:#5d8fa0;margin-top:4px}
+  .hud .cnt{display:inline-block;margin-top:10px;border:1px solid rgba(63,224,255,.3);border-radius:6px;padding:4px 12px;
+            background:rgba(0,20,30,.55);font-size:10px;letter-spacing:.15em;color:#5d8fa0}
+  .hud .cnt b{font-family:'Orbitron';font-size:16px;color:#e8fbff;margin-right:6px}
+  .bar{height:3px;margin:10px auto 0;max-width:420px;background:rgba(63,224,255,.15);border-radius:2px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3fe0ff,#ff3b3b)}
+  .end{position:absolute;left:0;right:0;top:47%;transform:translateY(-50%);text-align:center;opacity:0;transition:opacity 1s;
+       padding:34px 0;pointer-events:none;
+       background:radial-gradient(ellipse 75% 60% at 50% 50%,rgba(0,0,0,.9) 45%,rgba(0,0,0,.55) 70%,transparent 100%)}
+  .end.show{opacity:1}
+  .end h3{font-family:'Orbitron';font-weight:900;font-size:26px;letter-spacing:.18em}
+  .end p{margin-top:10px;font-size:13px;letter-spacing:.15em;color:#7fa6b3}
+  .end small{display:block;margin-top:34px;font-size:11px;letter-spacing:.3em;color:#3d5a66;animation:bl 1.6s infinite}
+  @keyframes bl{50%{opacity:.25}}
+  .x{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom) + 14px);font-size:11px;letter-spacing:.2em;
+     color:#3d5a66;padding:8px 10px;border:1px solid #1d3540;border-radius:8px;background:rgba(0,0,0,.5)}
+
+  /* Sperrbildschirm */
+  #lock{position:fixed;inset:0;z-index:2000;background:#05080d;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:24px;background:radial-gradient(circle at 50% 35%,rgba(63,224,255,.12),transparent 60%),#05080d}
+  #lock[hidden]{display:none}
+  #lock .lt{font-family:'Orbitron';font-weight:900;font-size:22px;letter-spacing:.12em;color:#3fe0ff;text-shadow:0 0 16px rgba(63,224,255,.5)}
+  #lock .ls{font-family:'Orbitron';font-size:11px;letter-spacing:.3em;color:#7fa6b3;margin:8px 0 26px}
+  #pin{width:220px;text-align:center;font-family:'Orbitron';font-size:30px;letter-spacing:.35em;padding:12px 0 12px .35em;border-radius:12px;
+       background:rgba(10,18,26,.9);border:1.5px solid #3fe0ff;color:#e8fbff;outline:none;box-shadow:0 0 18px rgba(63,224,255,.25)}
+  #pin.bad{border-color:#ff4d4d;animation:shk .4s}
+  @keyframes shk{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  #lockBtn{margin-top:18px;width:220px;padding:14px;border-radius:12px;border:none;background:#3fe0ff;color:#02141c;
+           font-family:'Orbitron';font-weight:700;letter-spacing:.15em;font-size:14px;cursor:pointer}
+  #lockMsg{margin-top:14px;min-height:20px;font-size:15px;color:#ff6b6b;font-family:'Rajdhani'}
+  #lock label{margin-top:10px;font-size:15px;color:#7fa6b3;display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<div id="lock">
+  <div class="lt">J.A.N.E.</div><div class="ls">ZUGANG · PIN EINGEBEN</div>
+  <input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••••">
+  <label><input type="checkbox" id="remember" checked> Auf diesem Gerät merken</label>
+  <button id="lockBtn" type="button">ENTSPERREN</button>
+  <div id="lockMsg"></div>
+</div>
+<div class="wrap">
+  <header>
+    <div class="tag">FERNSTEUERUNG · ONLINE</div>
+    <h1>GAMINGPC</h1>
+    <div class="clock" id="clock">--:--:--</div>
+  </header>
+
+  <div class="reactor" aria-hidden="true">
+    <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="core"></div>
+  </div>
+
+  <button class="btn start" id="startBtn" type="button">
+    <span class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 7.3a8 8 0 1 0 11.4 0"/></svg>
+    </span>
+    <span><div class="label">PC STARTEN</div><div class="sub">ein Tipp · PC wacht auf</div></span>
+    <span class="arrow">›</span>
+  </button>
+
+  <a class="btn ctrl" href="https://remotedesktop.google.com/access" target="_blank" rel="noopener">
+    <span class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5" rx="1.5"/><path d="M8 20.5h8M12 16.5v4"/></svg>
+    </span>
+    <span><div class="label">PC STEUERN</div><div class="sub">Bildschirm aufs Handy</div></span>
+    <span class="arrow">›</span>
+  </a>
+
+  <button class="btn off" id="offBtn" type="button">
+    <span class="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 7.3a8 8 0 1 0 11.4 0"/><path d="M4 4l16 16"/></svg>
+    </span>
+    <span><div class="label">HERUNTERFAHREN</div><div class="sub">PC direkt ausschalten</div></span>
+    <span class="arrow">›</span>
+  </button>
+  <div class="confirm" id="offConfirm" hidden>
+    <div class="q">PC wirklich herunterfahren?</div>
+    <div class="row">
+      <button type="button" class="no" id="offNo">Abbrechen</button>
+      <button type="button" class="yes" id="offYes">JA, AUS</button>
+    </div>
+  </div>
+
+  <details>
+    <summary>SO GEHT'S</summary>
+    <div class="help">
+      <h3 class="r">▸ PC STARTEN</h3>
+      <ol>
+        <li>Auf <b>PC STARTEN</b> tippen – fertig</li>
+        <li>Nach ca. 30–60 Sekunden ist Windows da</li>
+      </ol>
+      <h3 class="c">▸ PC STEUERN</h3>
+      <ol>
+        <li>Auf <b>PC STEUERN</b> tippen</li>
+        <li><b>GamingPC</b> antippen, PIN eingeben</li>
+        <li>Handy quer halten für ein größeres Bild</li>
+      </ol>
+      <h3 class="g">▸ HERUNTERFAHREN</h3>
+      <ol>
+        <li>Auf <b>HERUNTERFAHREN</b> tippen → <b>JA, AUS</b></li>
+        <li>Nach 15 Sekunden geht der PC aus. Abbrechen am PC: <b>Windows+R</b> → <b>shutdown /a</b></li>
+      </ol>
+      <h3 class="g">▸ ALS APP AUFS HANDY</h3>
+      <ol>
+        <li>Diese Seite in <b>Safari</b> oder <b>Chrome</b> öffnen</li>
+        <li>Unten auf <b>Teilen</b> → <b>Zum Home-Bildschirm</b></li>
+      </ol>
+    </div>
+  </details>
+
+  <footer>NEVIO · SYSTEMS</footer>
+</div>
+
+<script>
+  (function(){
+    var el=document.getElementById('clock');
+    function tick(){
+      var d=new Date();
+      el.textContent=d.toLocaleTimeString('de-DE')+' · '+d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'}).toUpperCase();
+    }
+    tick(); setInterval(tick,1000);
+  })();
+  (function(){
+    var b=document.getElementById('offBtn'),c=document.getElementById('offConfirm'),
+        n=document.getElementById('offNo'),y=document.getElementById('offYes');
+    b.addEventListener('click',function(){c.hidden=!c.hidden;});
+    n.addEventListener('click',function(){c.hidden=true;});
+    document.getElementById('startBtn').addEventListener('click',function(){ window.janeWake(); window.janeStartup(); });
+    y.addEventListener('click',function(){
+      c.hidden=true;
+      window.janeOff().then(function(ok){
+        if(ok){ window.janeShutdown(); }
+        else{ c.hidden=false; c.querySelector('.q').textContent='⚠ Befehl nicht gesendet – Internet prüfen'; }
+      });
+    });
+  })();
+</script>
+
+
+<div id="pl">
+  <canvas id="cv"></canvas>
+  <div class="hud"><div class="ti" id="ti"></div><div class="su" id="su"></div>
+    <div class="cnt"><b id="cn">000</b>PROZESSE</div><div class="bar"><i id="br"></i></div></div>
+  <div class="end" id="end"><h3 id="eh"></h3><p id="e1"></p><p id="e2"></p><small>TIPPEN ZUM SCHLIESSEN</small></div>
+  <div class="x" id="xb">✕ ABBRECHEN</div>
+</div>
+
+<script>
+(function(){
+  var PROGS=["Discord.exe","Steam.exe","VALORANT.exe","FiveM.exe","GTA5.exe","Chrome.exe","Claude.exe","Spotify.exe",
+  "NVIDIA App.exe","NGENUITY.exe","explorer.exe","EpicGames.exe","UbisoftConnect.exe","Minecraft.exe","cs2.exe",
+  "AssettoCorsa.exe","RiotClient.exe","vgc.exe","WhatsApp.exe","OneDrive.exe","dwm.exe","svchost.exe","lsass.exe",
+  "audiodg.exe","ArmouryCrate.exe","AuraSync.exe","MsMpEng.exe","OBS64.exe","Overwolf.exe","EasyAntiCheat.exe",
+  "TradingBot.exe","JANE-Core.exe","ClaudeBuero.exe","remoting_host.exe","ntfy-listener.ps1","SearchHost.exe",
+  "RuntimeBroker.exe","ctfmon.exe","sihost.exe","taskhostw.exe","spoolsv.exe","winlogon.exe","csrss.exe","GameBar.exe"];
+  var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),pl=document.getElementById('pl');
+  var tiEl=document.getElementById('ti'),suEl=document.getElementById('su'),cnEl=document.getElementById('cn'),
+      brEl=document.getElementById('br'),endEl=document.getElementById('end');
+  var W,H,DPR,cx,cy,base,raf=0,t0=0,cur=null,S={},ended=false;
+  function rnd(a,b){return a+Math.random()*(b-a)}
+  function pad(n){n=''+Math.max(0,Math.round(n));while(n.length<3)n='0'+n;return n}
+  function cl(v){return v<0?0:v>1?1:v}
+  function ease(v){v=cl(v);return 1-Math.pow(1-v,3)}
+  function pname(i){return PROGS[i%PROGS.length]}
+  function resize(){DPR=Math.min(window.devicePixelRatio||1,2.5);W=window.innerWidth;H=window.innerHeight;
+    cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);cx=W/2;cy=H*.5;base=Math.min(W*.5-12,H*.28);}
+  function glowDot(x,y,r,c,b){ctx.fillStyle=c;ctx.shadowColor=c;ctx.shadowBlur=b||8;ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill();ctx.shadowBlur=0;}
+  function reactor(x,y,R,t,a,colr,arcFrac){ // Arc-Reaktor
+    colr=colr||'63,224,255';arcFrac=arcFrac==null?1:arcFrac;
+    ctx.save();ctx.translate(x,y);
+    for(var k=0;k<4;k++){var rad=R*(1.25-k*.22),rot=t*.0012*(k%2?-1:1)*(1+k*.5)+k;
+      ctx.strokeStyle='rgba('+colr+','+(a*(.85-k*.12))+')';ctx.lineWidth=k===0?2.2:1.4;ctx.setLineDash(k===2?[4,6]:[]);
+      ctx.beginPath();ctx.arc(0,0,rad,rot,rot+(4.4-k*.6)*arcFrac);ctx.stroke();}
+    ctx.setLineDash([]);
+    var g=ctx.createRadialGradient(0,0,0,0,0,R*.6);g.addColorStop(0,'rgba(255,255,255,'+a+')');
+    g.addColorStop(.4,'rgba('+colr+','+(a*.9)+')');g.addColorStop(1,'rgba('+colr+',0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,R*.6,0,6.283);ctx.fill();ctx.restore();}
+
+  /* ====================== STARTUP 1: SUPERNOVA ====================== */
+  var B1={type:'up',dur:11000,title:'J.A.N.E. // STARTUP',sub:'SUPERNOVA-ZÜNDUNG',
+   init:function(){S.p=[];S.sat=[];S.launched=0;S.boom=false;
+     for(var i=0;i<100;i++){var ring=i<25?0:i<60?1:2;S.sat.push({ring:ring,a:rnd(0,6.283),at:4400+5400*Math.pow(i/99,.8),on:false});}},
+   draw:function(t){
+     ctx.fillStyle='rgba(0,0,0,'+(t<1500?.5:.25)+')';ctx.fillRect(0,0,W,H);
+     if(t<1500){var k=t/1500,pr=2+k*7+Math.sin(t*.02)*2*k;
+       for(var r=0;r<3;r++){var ph=((t+r*400)%1200)/1200;ctx.strokeStyle='rgba(120,220,255,'+(1-ph)*k*.6+')';ctx.lineWidth=1;
+         ctx.beginPath();ctx.arc(cx,cy,ph*base*.8*k,0,6.283);ctx.stroke();}
+       glowDot(cx,cy,pr,'#fff',30*k);return 0;}
+     if(!S.boom){S.boom=true;for(var i=0;i<420;i++){var a=rnd(0,6.283),c=Math.random();
+       S.p.push({a:a,r:rnd(0,8),vr:rnd(4,14),tr:base*[.45,.7,.95,1.2][Math.random()*4|0]*rnd(.85,1.1),
+         w:rnd(.002,.006)*(Math.random()<.5?1:-1),c:c<.45?'63,224,255':c<.75?'190,110,255':c<.9?'255,120,200':'255,255,255',s:rnd(.8,2.2)});}}
+     var e=t-1500;
+     if(e<600){ctx.fillStyle='rgba(255,255,255,'+(1-e/600)*.8+')';ctx.fillRect(0,0,W,H);
+       ctx.strokeStyle='rgba(200,240,255,'+(1-e/600)+')';ctx.lineWidth=4;ctx.beginPath();ctx.arc(cx,cy,e/600*Math.hypot(W,H)*.6,0,6.283);ctx.stroke();}
+     for(var i=0;i<S.p.length;i++){var p=S.p[i];
+       p.vr=p.vr*.94+(p.tr-p.r)*.004;p.r+=p.vr;p.a+=p.w*(base/(p.r+20))*3;
+       var x=cx+Math.cos(p.a)*p.r,y=cy+Math.sin(p.a)*p.r*.92;
+       ctx.fillStyle='rgba('+p.c+','+(.35+.5*Math.random())+')';ctx.fillRect(x,y,p.s,p.s);}
+     var ra=cl((t-2300)/1800);reactor(cx,cy,base*.34*(.3+.7*ease(ra)),t,ra,null,ease(ra));
+     var rr=[.5,.75,1];
+     for(var i=0;i<S.sat.length;i++){var s=S.sat[i];if(t<s.at)continue;
+       if(!s.on){s.on=true;S.launched++;}
+       var k=ease((t-s.at)/650),R=base*rr[s.ring]*k,ang=s.a+t*.00025*(s.ring%2?-1:1)+(1-k)*3;
+       var x=cx+Math.cos(ang)*R,y=cy+Math.sin(ang)*R;
+       if(k<1){var k2=ease((t-s.at-60)/650),R2=base*rr[s.ring]*k2,a2=s.a+(t-60)*.00025*(s.ring%2?-1:1)+(1-k2)*3;
+         ctx.strokeStyle='rgba(120,255,200,.8)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(cx+Math.cos(a2)*R2,cy+Math.sin(a2)*R2);ctx.lineTo(x,y);ctx.stroke();}
+       glowDot(x,y,2,k<1?'#7affc4':'#3fe0ff');
+       ctx.fillStyle='rgba(160,230,255,.7)';ctx.font='7px "Share Tech Mono"';ctx.textAlign='center';ctx.fillText(pad(Math.random()*999),x,y-5);}
+     if(t>10000){var q=(t-10000)/1000;ctx.strokeStyle='rgba(63,224,255,'+(1-q)+')';ctx.lineWidth=3;
+       ctx.beginPath();ctx.arc(cx,cy,base*(.4+q*.9),0,6.283);ctx.stroke();}
+     return S.launched/100;}};
+
+  var S1b={type:'down',dur:7300,title:'J.A.N.E. // SHUTDOWN',sub:'SINGULARITÄT ERKANNT',
+   init:function(){S.ps=[];S.dust=[];S.done=0;S.boom=false;S.sp=[];
+     for(var i=0;i<100;i++)S.ps.push({a:rnd(0,6.283),r0:base*rnd(.75,1.25),st:rnd(150,3600),du:rnd(900,1500),name:pname(i),done:false});
+     for(var i=0;i<380;i++)S.dust.push({a:rnd(0,6.283),r:rnd(.28,1),sp:rnd(.6,1.4)});},
+   pos:function(p,t,hR){var k=cl((t-p.st)/p.du),kk=k*k;var r=p.r0*(1-kk)+hR*kk,a=p.a+kk*7;return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*.75,k:k};},
+   draw:function(t){
+     var T2=5200,T3=6200,T4=6500;
+     if(t>=T4){ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(0,0,W,H);var q=cl((t-T4)/700);
+       glowDot(cx,cy,2.5*(1-q)+.3,'rgba(255,200,140,'+(1-q)+')',14*(1-q));return 1;}
+     ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(0,0,W,H);
+     var c=t<T2?0:cl((t-T2)/1300),hR=base*(.1+.1*cl(t/T2))*(1-c*.85),sh=t>T2?6*c:1.5*cl(t/T2);
+     ctx.save();ctx.translate(rnd(-sh,sh),rnd(-sh,sh));
+     var self=this;
+     // Akkretionsscheibe hinten
+     function disk(front){for(var i=0;i<S.dust.length;i++){var d=S.dust[i],ang=d.a+t*.0012*d.sp/d.r;
+       var r=(hR*1.15+d.r*base*.75)*(1-c*.9),s=Math.sin(ang);if((s>0)!==front)continue;
+       var x=cx+Math.cos(ang)*r,y=cy+s*r*.32,heat=1-d.r;
+       ctx.fillStyle='rgba(255,'+(120+heat*130|0)+','+(40+heat*200|0)+','+(.4+.5*heat)+')';ctx.fillRect(x,y,1.6,1.6);}}
+     disk(false);
+     // Programme werden eingesaugt
+     ctx.font='8px "Share Tech Mono"';ctx.textAlign='center';
+     for(var i=0;i<S.ps.length;i++){var p=S.ps[i];var P=self.pos(p,t,hR);
+       if(P.k>=1){if(!p.done){p.done=true;S.done++;for(var j=0;j<6;j++)S.sp.push({x:P.x,y:P.y,vx:rnd(-2,2),vy:rnd(-2,2),l:1});}continue;}
+       var Q=self.pos(p,t-45,hR);
+       ctx.strokeStyle='rgba('+(P.k>.5?'255,170,80':'63,224,255')+','+(.5+P.k*.5)+')';ctx.lineWidth=1+P.k*1.5;
+       ctx.beginPath();ctx.moveTo(Q.x,Q.y);ctx.lineTo(P.x,P.y);ctx.stroke();glowDot(P.x,P.y,1.8,P.k>.5?'#ffb050':'#3fe0ff',6);
+       if(P.k<.35&&i%3===0){ctx.fillStyle='rgba(160,230,255,'+(1-P.k/.35)*.8+')';ctx.fillText(p.name,P.x,P.y-6);}}
+     // Ereignishorizont
+     ctx.fillStyle='#000';ctx.beginPath();ctx.arc(cx,cy,hR,0,6.283);ctx.fill();
+     ctx.strokeStyle='rgba(255,230,190,.95)';ctx.lineWidth=2;ctx.shadowColor='#ffb050';ctx.shadowBlur=25;
+     ctx.beginPath();ctx.arc(cx,cy,hR+1,0,6.283);ctx.stroke();ctx.shadowBlur=0;
+     ctx.strokeStyle='rgba(255,200,150,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(cx,cy,hR*1.7,hR*1.55,0,0,6.283);ctx.stroke();
+     disk(true);
+     for(var i=S.sp.length-1;i>=0;i--){var s=S.sp[i];s.x+=s.vx;s.y+=s.vy;s.l-=.05;if(s.l<=0){S.sp.splice(i,1);continue;}
+       ctx.fillStyle='rgba(255,220,160,'+s.l+')';ctx.fillRect(s.x,s.y,2,2);}
+     ctx.restore();
+     return t>=T3?1:S.done/100;}};
+
+  var VAR={B1:B1,S1b:S1b};
+
+  function frame(now){
+    var t=Math.max(0,now-t0),v=cur;var p=v.draw(t)||0;
+    cnEl.textContent=pad(v.type==='up'?p*100:100-p*100);brEl.style.width=(p*100)+'%';
+    if(!ended&&t>=v.dur){ended=true;endEl.classList.add('show');}
+    raf=requestAnimationFrame(frame);}
+  function play(key){var v=VAR[key];cur=v;S={};ended=false;resize();v.init();
+    var up=v.type==='up';tiEl.textContent=v.title;suEl.textContent=v.sub;tiEl.style.color=up?'#3fe0ff':'#ff4d4d';
+    document.getElementById('eh').textContent=up?'SYSTEM ONLINE':'SYSTEM OFFLINE';
+    document.getElementById('eh').style.color=up?'#3fe0ff':'#ff4d4d';
+    document.getElementById('eh').style.textShadow=up?'0 0 18px rgba(63,224,255,.8)':'0 0 18px rgba(255,59,59,.8)';
+    document.getElementById('e1').textContent=up?'WINDOWS STARTET · CA. 30–60 SEK.':'GAMINGPC FÄHRT HERUNTER';
+    document.getElementById('e2').textContent=up?'WILLKOMMEN ZURÜCK, NEVIO':'BIS SPÄTER, NEVIO';
+    endEl.classList.remove('show');pl.classList.add('on');ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    t0=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(frame);}
+  function stop(){cancelAnimationFrame(raf);pl.classList.remove('on');cur=null;}
+  window.janeStartup=function(){play('B1');};
+  window.janeShutdown=function(){play('S1b');};
+  pl.addEventListener('click',function(e){if(e.target.id==='xb'||ended)stop();});
+  window.addEventListener('resize',function(){if(cur)resize();});
+})();
+</script>
+<script>
+(function(){
+  var VAULT={"s": "qQNBmW627rmGa2SNLTQWSA==", "i": "LsOcyy3cS1aO2UG6", "c": "n0+z5oPbkKu3CoP873CjT1W88iQe3ZEK+FPgG4IY9HCNYqBbHtAwyl0E2Ems8dQJZIpVSUjpa4ixdmVz/e4k0vX3VgdMqkKxxYz4sctuB4keNu1vJRsJ4eEDVIignuPVpf8vFBPq0JEMgPtTktb2A8/9v+AcRpiuoyDoDXnBTU5S", "n": 300000}, SEC=null, KEY='jane_vault_v1';
+  var lock=document.getElementById('lock'),pin=document.getElementById('pin'),msg=document.getElementById('lockMsg');
+  function b64(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+  function unlock(code){
+    var enc=new TextEncoder();
+    return crypto.subtle.importKey('raw',enc.encode(code),'PBKDF2',false,['deriveKey']).then(function(k){
+      return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(VAULT.s),iterations:VAULT.n,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']);
+    }).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64(VAULT.i)},key,b64(VAULT.c));})
+      .then(function(buf){return JSON.parse(new TextDecoder().decode(buf));});
+  }
+  function done(sec){SEC=sec;lock.hidden=true;}
+  try{var st=localStorage.getItem(KEY);if(st){done(JSON.parse(st));}}catch(e){}
+  function tryPin(){
+    var code=pin.value.trim();if(!code)return;msg.textContent='prüfe …';
+    unlock(code).then(function(sec){
+      try{if(document.getElementById('remember').checked)localStorage.setItem(KEY,JSON.stringify(sec));}catch(e){}
+      msg.textContent='';done(sec);
+    }).catch(function(){msg.textContent='Falsche PIN';pin.classList.remove('bad');void pin.offsetWidth;pin.classList.add('bad');pin.value='';});
+  }
+  document.getElementById('lockBtn').addEventListener('click',tryPin);
+  pin.addEventListener('keydown',function(e){if(e.key==='Enter')tryPin();});
+  // Signale – laufen unsichtbar im Hintergrund
+  window.janeWake=function(){
+    if(!SEC)return;
+    var u=SEC.wake+'?t='+Date.now();
+    try{fetch(u,{mode:'no-cors',cache:'no-store'}).catch(function(){});}catch(e){}
+    try{var im=new Image();im.src=u+'&i=1';}catch(e){}
+  };
+  window.janeOff=function(){
+    if(!SEC)return Promise.resolve(false);
+    return fetch(SEC.ntfy,{method:'POST',body:'shutdown',cache:'no-store'}).then(function(r){return r.ok;})
+      .catch(function(){return fetch(SEC.ntfy,{method:'POST',mode:'no-cors',body:'shutdown'}).then(function(){return true;}).catch(function(){return false;});});
+  };
+})();
+</script>
+</body>
+</html>
